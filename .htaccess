@@ -1,0 +1,17 @@
+#enable Rewrite Engine
+RewriteEngine On
+
+#set the default character set to UTF-8
+AddDefaultCharset utf-8
+
+#prevent directory browsing
+Options -Indexes
+
+#remove .php extension from URLs
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.php -f
+RewriteRule ^(.*)$ $1.php [L]
+
+# Custom Error Pages
+ErrorDocument 404 /vyapar_guru-volunteer_app-php_mysql/404
+ErrorDocument 500 /500
