@@ -5,23 +5,29 @@
         die();
     }
     include "config.php";
-    if($_SERVER["REQUEST_METHOD"]=="POST"){
-        $sql = $conn->prepare("INSERT INTO posts(user, content) VALUES (?, ?)");
-        $sql->bindParam(1, $_SESSION["id"], PDO::PARAM_INT);
-        $sql->bindParam(2, $_POST["post"], PDO::PARAM_STR);
-        $sql->execute();
-    }
-    $sql = $conn->prepare("SELECT name, type FROM users WHERE id = ?");
+    $sql = $conn->prepare("SELECT name FROM users WHERE id = ?");
     $sql->bindParam(1, $_SESSION["id"], PDO::PARAM_INT);
     $sql->execute();
     if($sql->rowCount()==1){
-        $user = $sql->fetch(PDO::FETCH_NUM);
-        if($user[1]==NULL){
-            $user[1]="profile-picture-alternative";
-        }
+        $name = $sql->fetch(PDO::FETCH_NUM)[0];
     }else{
         session_destroy();
         header("Location: login");
+    }
+
+    if($_SERVER["REQUEST_METHOD"]=="POST"){
+        $sql = $conn->prepare("INSERT INTO messages(sender, reciever, body) VALUES (?, ?, ?)");
+        $sql->bindParam(1, $_SESSION["id"], PDO::PARAM_INT);
+        $sql->bindParam(2, $_POST["reciever"], PDO::PARAM_INT);
+        $sql->bindParam(3, $_POST["body"], PDO::PARAM_STR);
+        $sql->execute();
+        header("Location: profile?id=".$_POST["reciever"]);
+    }
+    $sql = $conn->prepare("SELECT name FROM users WHERE id = ?");
+    $sql->bindParam(1, $_GET["id"], PDO::PARAM_INT);
+    $sql->execute();
+    if($sql->rowCount()==1){
+        $sender = $sql->fetch(PDO::FETCH_NUM);
     }
 ?>
 <!DOCTYPE html>
@@ -29,7 +35,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home | VyaparGuru</title>
+    <title>Write a Message | VyaparGuru</title>
     <link rel="shortcut icon" href="assets/public/branding/favicon.ico" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,12 +54,12 @@
                 <a href="#" class="navbar-brand d-sm-none"><svg xmlns="http://www.w3.org/2000/svg" width=48 viewBox="0 0 96 64"><path d="M4.65 62.21c-.99-.63-1.63-1.45-1.91-2.49s-.48-2.77-.6-5.21c-.12-3.69-.44-9.44-.93-17.27L.56 25.13C.19 18.61.01 12.07 0 5.53c0-1.51.67-2.77 2-3.8S5.03.18 7.07.18c1.87 0 3.23.52 4.09 1.55.87 1.03 1.31 2.61 1.31 4.73l.09 37.35v9.29c4.96-11.07 10.64-22.69 17.03-34.87C35.97 6.08 40.07 0 41.87 0c2.29 0 4.16.53 5.59 1.6s2.17 2.32 2.23 3.76c-.37.81-1.89 3.69-4.56 8.64l-4.37 7.79-3.16 5.91-13.13 23.93c-2.48 4.37-4.56 7.48-6.23 9.29-.75.88-1.88 1.61-3.4 2.2s-3.19.88-4.97.88c-2.5-.56-4.23-1.16-5.22-1.79z" fill="#00796b"/><path d="M93.25 29.13c1.21.91 1.97 2 2.28 3.28s.47 2.92.47 4.93c0 5.25-1.43 9.89-4.28 13.93s-6.57 7.16-11.16 9.39C75.97 62.88 71.11 64 65.96 64c-7.44 0-12.89-2.09-16.37-6.29-3.48-4.19-5.21-9.32-5.21-15.39 0-7.39 1.43-14.32 4.28-20.83S55.21 9.77 59.77 5.87 69.03 0 73.87 0c4.52 0 8.4.69 11.63 2.07 3.23 1.37 5.64 3.17 7.25 5.4s2.41 4.52 2.41 6.89c0 1.95-.63 3.44-1.87 4.51s-3.04 1.6-5.4 1.6c-1.87 0-3.17-.71-3.95-2.11-.77-1.41-1.16-2.96-1.16-4.64 0-.81-.48-1.65-1.44-2.53s-2.16-1.32-3.59-1.32c-3.41 0-6.83 1.55-10.23 4.64-3.41 3.09-6.2 7.32-8.37 12.67s-3.25 11.21-3.25 17.6c0 2.95 1.03 5.31 3.07 7.08s4.75 2.68 8.09 2.68c2.41 0 5.03-.75 7.81-2.25 2.79-1.51 5.15-3.51 7.07-6 1.92-2.51 2.88-5.19 2.88-8.07-.63.07-1.4.25-2.32.56-1.17.37-2.25.65-3.21.84s-2.28.28-3.95.28c-1.99 0-3.45-.27-4.41-.8s-1.44-1.48-1.44-2.87c0-.93.23-2.03.69-3.28.47-1.25 1.04-2.16 1.72-2.72 3.04-.81 5.68-1.43 7.91-1.83s4.84-.61 7.81-.61c2.55-.02 4.43.44 5.63 1.34z" fill="#f57c00"/></svg></a>
                 <div class="collapse navbar-collapse flex-grow-0">
                     <ul class="navbar-nav d-none d-md-flex">
-                        <li class="nav-item"><a href="home" class="nav-link active"><i class="fa-solid fa-house me-2"></i><b>Home</b></a></li>
+                        <li class="nav-item"><a href="home" class="nav-link"><i class="fa-solid fa-house me-2"></i><b>Home</b></a></li>
                         <li class="nav-item"><a href="search" class="nav-link"><i class="fa-solid fa-magnifying-glass me-2"></i><b>Search</b></a></li>
-                        <li class="nav-item"><a href="messages" class="nav-link"><i class="fa-regular fa-envelope me-2"></i><b>Messages</b></a></li>
+                        <li class="nav-item"><a href="messages" class="nav-link active"><i class="fa-regular fa-envelope me-2"></i><b>Messages</b></a></li>
                         <li class="nav-item"><a href="notifications" class="nav-link"><i class="fa-regular fa-bell me-2"></i><b>Notifications</b></a></li>
                         <li class="nav-item dropdown">
-                            <a href="profile" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa-regular fa-circle-user fa-lg me-2"></i><b><?php echo $user[0] ?></b></a>
+                            <a href="profile" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa-regular fa-circle-user fa-lg me-2"></i><b><?php echo $name; ?></b></a>
                             <ul class="dropdown-menu">
                                 <li><a href="profile" class="dropdown-item">Profile</a></li>
                                 <li><a href="settings" class="dropdown-item">Settings</a></li>
@@ -69,62 +75,20 @@
     </header>
     <main class="flex-grow-1 bg-body-secondary">
         <article class="container-xxl py-3">
-            <h3>Suggested Volunteers</h3>
-            <?php
-                $sql = $conn->prepare("SELECT u.id, u.name AS user_name, u.profile_picture, s.name FROM users u JOIN user_skills us ON u.id = us.user JOIN skillset s ON us.skill = s.id WHERE us.skill IN (SELECT DISTINCT r.skill FROM requirements r WHERE r.user = ?)");
-                $sql->bindParam(1, $_SESSION["id"], PDO::PARAM_INT);
-                $sql->execute();
-                if($sql->rowCount()>0){
-            ?>
-            <div class="carousel-container">
-                <div class="owl-carousel owl-theme">
-            <?php
-                    while($users = $sql->fetch(PDO::FETCH_NUM)){
-                        if($users[2]==NULL){
-                            $users[2]="profile-picture-alternative";
-                        }
-            ?>
-                    <div class="item">
-                        <div class="ratio ratio-1x1 rounded-circle overflow-hidden mb-2"><img src="uploads/profile-pictures/<?php echo $users[2]; ?>.webp" alt="" class="img-thumbnail object-fit-cover"></div>
-                        <h5 class="text-center"><?php echo $users[1]; ?></h5>
-                        <h6 class="text-center mb-2"><?php echo $users[3]; ?></h6>
-                        <div class="d-flex justify-content-around">
-                            <a href="profile?id=<?php echo $users[0]; ?>" class="btn btn-success w-100">View Profile</a>
-                        </div>
-                    </div>
-            <?php
-            
+            <ul class="list-group list-group-flush mt-3 mx-auto" style="max-width: 600px">
+                <?php
+                    $sql = $conn->prepare("SELECT m.sender, u.name, m.body, DATE_FORMAT(m.date, '%d %b %y') AS formatted_date FROM messages m JOIN users u ON m.sender = u.id WHERE m.reciever = ?");
+                    $sql->bindParam(1, $_SESSION["id"], PDO::PARAM_INT);
+                    $sql->execute();
+                    while($row = $sql->fetch(PDO::FETCH_NUM)){
+                        echo "<li class='list-group-item border-bottom mt-3'>
+                            <h6 class='pb-1 mb-0 border-bottom'><a href=profile?id=".$row[0]." class='link-dark text-decoration-none'>".$row[1]."</a></h6>
+                            <p class='py-3 mb-1 border-bottom'>".$row[2]."</p>
+                            <div class='text-end'>".$row[3]."</div>
+                        </li>";
                     }
-            ?>
-            </div>
-            </div>
-            <?php
-                }else{
-                    echo "No suggestions for now";
-                } 
-            ?>
-            <div class="mx-auto mt-5" style="max-width: 600px">
-                <form action="<?php echo $_SERVER["PHP_SELF"];?>" method="post">
-                    <div class="form-floating mb-2">
-                        <textarea id="post" name="post" class="form-control" placeholder="Write something...." autocomplete="off" style="height:100px; resize: none"></textarea>
-                        <label for="about">Write something...</label>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Post</button>
-                </form>
-                <ul class="list-group list-group-flush mt-3">
-                    <?php
-                        $sql = $conn->prepare("SELECT p.user, u.name, p.content, DATE_FORMAT(p.date, '%d %b %y') AS formatted_date FROM posts p JOIN users u ON p.user = u.id");
-                        $sql->execute();
-                        while($row = $sql->fetch(PDO::FETCH_NUM)){
-                            echo "<li class='list-group-item border-bottom mt-3'>
-                                <h6 class='pb-1 mb-0 border-bottom'><a href=profile?id=".$row[0]." class='link-dark text-decoration-none'>".$row[1]."</a></h6>
-                                <p class='py-3 mb-1 border-bottom'>".$row[2]."</p>
-                                <div class='text-end'>".$row[3]."</div>
-                            </li>";
-                        }
-                    ?>
-                </ul>
-            </div>
+                ?>
+            </ul>
         </article>
     </main>
     <footer class="nav justify-content-around border-top sticky-bottom py-3 bg-white d-md-none">
@@ -152,40 +116,4 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
-<script>
-    $(document).ready(function(){
-        $(".owl-carousel").owlCarousel({
-            loop: true,
-            margin: 25,
-            stagePadding: 75,
-            autoplay:true,
-            nav: true,
-            autoplayTimeout:3000,
-            autoplayHoverPause:true,
-            responsive:{
-                0:{
-                    items: 1
-                },
-                375:{
-                    items: 2
-                },
-                576:{
-                    items: 3
-                },
-                768:{
-                    items: 4,
-                    mouseDrag: false
-                },
-                992:{
-                    items: 5,
-                    mouseDrag: false
-                },
-                1200:{
-                    items: 6,
-                    mouseDrag: false
-                }
-            }
-        })
-    })
-</script>
 </html>

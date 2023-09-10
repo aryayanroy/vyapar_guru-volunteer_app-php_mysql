@@ -78,7 +78,7 @@
             }
         }
     }
-    $sql = $conn->prepare("SELECT name, profile_picture, about, type, email FROM users WHERE id = ?");
+    $sql = $conn->prepare("SELECT name, profile_picture, about, type FROM users WHERE id = ?");
     $sql->bindParam(1, $id, PDO::PARAM_INT);
     $sql->execute();
     if($sql->rowCount()==1){
@@ -146,7 +146,7 @@
                     }
                 ?>
                 </span></div>
-                <div class="text-center mt-3"><?php if($own == false){echo "<a href='mailto:".$user[4]."' class='text-decoration-none'><i class='fa-solid fa-paper-plane me-2'></i><span>Send a message</span></a>";}?></div>
+                <div class="text-center mt-3"><?php if($own == false){echo "<a href='write?id=".$id."' class='text-decoration-none'><i class='fa-solid fa-paper-plane me-2'></i><span>Send a message</span></a>";}?></div>
                 <div class="form-floating my-3">
                     <input type="text" id="name" name="name" class="form-control" placeholder="Full name" autocomplete="off" spellcheck="false" value="<?php echo $user[0]; ?>" required <?php if($own == false){echo "readonly"; }?>>
                     <label for="name">Full name</label>

@@ -36,4 +36,18 @@ CREATE TABLE requirements (
     business VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user INT NOT NULL,
+    content VARCHAR(255) NOT NULL,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sender INT NOT NULL,
+    reciever INT NOT NULL,
+    body VARCHAR(255) NOT NULL,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
                 
