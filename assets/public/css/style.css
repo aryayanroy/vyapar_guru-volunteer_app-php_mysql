@@ -7,3 +7,8 @@ body{
 h1, h2, h3, h4{
     font-weight: 600;
 }
+.skills-container>span{
+    padding: 0.2rem 0.5rem;
+    background-color: #ccc;
+    cursor: pointer;
+}
